@@ -2261,9 +2261,10 @@ static __devinit int msm8226_asoc_machine_probe(struct platform_device *pdev)
 	struct msm8226_asoc_mach_data *pdata;
 	int ret;
 	const char *auxpcm_pri_gpio_set = NULL;
+#ifndef CONFIG_HUAWEI_KERNEL
 	const char *mbhc_audio_jack_type = NULL;
 	size_t n = strlen("4-pole-jack");
-
+#endif
 	if (!pdev->dev.of_node) {
 		dev_err(&pdev->dev, "No platform supplied from device tree\n");
 		return -EINVAL;
@@ -2328,6 +2329,10 @@ static __devinit int msm8226_asoc_machine_probe(struct platform_device *pdev)
 	mbhc_cfg.gpio_level_insert = of_property_read_bool(pdev->dev.of_node,
 					"qcom,headset-jack-type-NC");
 
+#ifdef CONFIG_HUAWEI_KERNEL
+    mbhc_cfg.gpio_level_insert = !of_property_read_bool(pdev->dev.of_node,
+                    "huawei,headset-jack-type-NO");
+#else					
 	ret = of_property_read_string(pdev->dev.of_node,
 		"qcom,mbhc-audio-jack-type", &mbhc_audio_jack_type);
 	if (ret) {
@@ -2356,6 +2361,7 @@ static __devinit int msm8226_asoc_machine_probe(struct platform_device *pdev)
 			dev_dbg(&pdev->dev, "Unknown value, hence setting to default");
 		}
 	}
+#endif
 
 	ret = snd_soc_register_card(card);
 	if (ret == -EPROBE_DEFER)
