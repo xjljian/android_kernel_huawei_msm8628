@@ -29,8 +29,6 @@
 #include <linux/workqueue.h>
 #include <mach/msm_smd.h>
 #include <media/radio-iris.h>
-#include <linux/wakelock.h>
-#include <linux/uaccess.h>
 
 struct radio_data {
 	struct radio_hci_dev *hdev;
@@ -38,10 +36,7 @@ struct radio_data {
 	struct smd_channel  *fm_channel;
 };
 struct radio_data hs;
-static DEFINE_MUTEX(fm_smd_enable);
-static int fmsmd_set;
-static int hcismd_fm_set_enable(const char *val, struct kernel_param *kp);
-module_param_call(fmsmd_set, hcismd_fm_set_enable, NULL, &fmsmd_set, 0644);
+
 static struct work_struct *reset_worker;
 static void radio_hci_smd_deregister(void);
 
@@ -173,7 +168,6 @@ static int radio_hci_smd_register_dev(struct radio_data *hsmd)
 		(unsigned long) hsmd);
 	hdev->send  = radio_hci_smd_send_frame;
 	hdev->destruct = radio_hci_smd_destruct;
-	hdev->close_smd = radio_hci_smd_deregister;
 
 	/* Open the SMD Channel and device and register the callback function */
 	rc = smd_named_open_on_edge("APPS_FM", SMD_APPS_WCNSS,
@@ -203,41 +197,24 @@ static void radio_hci_smd_deregister(void)
 {
 	smd_close(hs.fm_channel);
 	hs.fm_channel = 0;
-	fmsmd_set = 0;
 }
 
-static int radio_hci_smd_init(void)
+#ifndef MODULE
+int radio_hci_smd_init(void)
+#else
+static int __init radio_hci_smd_init(void)
+#endif
 {
 	return radio_hci_smd_register_dev(&hs);
 }
+module_init(radio_hci_smd_init);
 
-static void radio_hci_smd_exit(void)
+static void __exit radio_hci_smd_exit(void)
 {
 	radio_hci_smd_deregister();
 }
+module_exit(radio_hci_smd_exit);
 
-static int hcismd_fm_set_enable(const char *val, struct kernel_param *kp)
-{
-	int ret = 0;
-	mutex_lock(&fm_smd_enable);
-	ret = param_set_int(val, kp);
-	if (ret)
-		goto done;
-	switch (fmsmd_set) {
-
-	case 1:
-		radio_hci_smd_init();
-		break;
-	case 0:
-		radio_hci_smd_exit();
-		break;
-	default:
-		ret = -EFAULT;
-	}
-done:
-	mutex_unlock(&fm_smd_enable);
-	return ret;
-}
-MODULE_DESCRIPTION("FM SMD driver");
+MODULE_DESCRIPTION("Bluetooth SMD driver");
 MODULE_AUTHOR("Ankur Nandwani <ankurn@codeaurora.org>");
 MODULE_LICENSE("GPL v2");

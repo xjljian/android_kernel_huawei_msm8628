@@ -51,6 +51,7 @@ static char rt_ert_flag;
 static char formatting_dir;
 static unsigned char sig_blend = CTRL_ON;
 static DEFINE_MUTEX(iris_fm);
+static int transport_ready = -1;
 
 module_param(rds_buf, uint, 0);
 MODULE_PARM_DESC(rds_buf, "RDS buffer entries: *100*");
@@ -3121,6 +3122,8 @@ static int iris_do_calibration(struct iris_device *radio)
 			radio->fm_hdev);
 	if (retval < 0)
 		FMDERR("Disable Failed after calibration %d", retval);
+	else
+		radio->mode = FM_OFF;
 
 	return retval;
 }
@@ -3457,8 +3460,9 @@ static int iris_vidioc_g_ctrl(struct file *file, void *priv,
 END:
 	if (retval > 0)
 		retval = -EINVAL;
-	if (ctrl != NULL && retval < 0)
-		FMDERR("get control failed: %d, ret: %d\n", ctrl->id, retval);
+	if (retval < 0)
+		FMDERR("get control failed with %d, id: %d\n",
+			retval, ctrl->id);
 
 	return retval;
 }
@@ -4878,7 +4882,7 @@ static int iris_fops_release(struct file *file)
 		return -EINVAL;
 
 	if (radio->mode == FM_OFF)
-		goto END;
+		return 0;
 
 	if (radio->mode == FM_RECV) {
 		radio->mode = FM_OFF;
@@ -4888,13 +4892,7 @@ static int iris_fops_release(struct file *file)
 		radio->mode = FM_OFF;
 		retval = hci_cmd(HCI_FM_DISABLE_TRANS_CMD,
 					radio->fm_hdev);
-	} else if (radio->mode == FM_CALIB) {
-		radio->mode = FM_OFF;
-		return retval;
 	}
-END:
-	if (radio->fm_hdev != NULL)
-		radio->fm_hdev->close_smd();
 	if (retval < 0)
 		FMDERR("Err on disable FM %d\n", retval);
 
@@ -5095,10 +5093,23 @@ static const struct v4l2_ioctl_ops iris_ioctl_ops = {
 	.vidioc_g_ext_ctrls           = iris_vidioc_g_ext_ctrls,
 };
 
+#ifndef MODULE
+extern int radio_hci_smd_init(void);
+static int iris_fops_open(struct file *f) {
+	if (transport_ready < 0) {
+		transport_ready = radio_hci_smd_init();
+	}
+	return transport_ready;
+}
+#endif
+
 static const struct v4l2_file_operations iris_fops = {
 	.owner = THIS_MODULE,
 	.unlocked_ioctl = video_ioctl2,
 	.release        = iris_fops_release,
+#ifndef MODULE
+	.open           = iris_fops_open,
+#endif
 };
 
 static struct video_device iris_viddev_template = {
