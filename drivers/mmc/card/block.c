@@ -1526,6 +1526,18 @@ static int mmc_blk_err_check(struct mmc_card *card,
 		unsigned long timeout;
 
 		timeout = jiffies + msecs_to_jiffies(MMC_BLK_TIMEOUT_MS);
+
+#ifdef CONFIG_HUAWEI_MMC
+		if(EMMC_TOSHIBA_MANFID == card->cid.manfid) {
+			pr_debug("[HW]:EMMC_TOSHIBA_MANFID:Retry Function.");
+			/* Check stop command(CMD12)response */
+			if (brq->mrq.stop && (brq->mrq.stop->resp[0]&R1_ERROR)) {
+				pr_err("[HW]:EMMC_TOSHIBA_MANFID:R1_ERROR in CMD12 response, need retry.\n");
+				return MMC_BLK_RETRY;
+			}
+		}
+#endif
+
 		do {
 			int err = get_card_status(card, &status, 5);
 			if (err) {
@@ -3123,6 +3135,12 @@ static const struct mmc_fixup blk_fixups[] =
 		  MMC_QUIRK_SEC_ERASE_TRIM_BROKEN),
 	MMC_FIXUP(CID_NAME_ANY, CID_MANFID_HYNIX, CID_OEMID_ANY, add_quirk_mmc,
 		  MMC_QUIRK_BROKEN_DATA_TIMEOUT),
+#ifdef CONFIG_HUAWEI_MMC
+	MMC_FIXUP(CID_NAME_ANY, CID_MANFID_SANDISK, CID_OEMID_ANY, add_quirk_mmc,
+		  MMC_QUIRK_SEC_ERASE_TRIM_BROKEN),
+	MMC_FIXUP(CID_NAME_ANY, CID_MANFID_TOSHIBA, CID_OEMID_ANY, add_quirk_mmc,
+		  MMC_QUIRK_SEC_ERASE_TRIM_BROKEN),
+#endif
 
 	END_FIXUP
 };

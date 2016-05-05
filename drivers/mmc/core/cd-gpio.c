@@ -37,12 +37,18 @@ out:
 	return ret;
 }
 
+#ifdef CONFIG_HUAWEI_MMC
+static unsigned long msmsdcc_irqtime = 0;
+#endif
 static irqreturn_t mmc_cd_gpio_irqt(int irq, void *dev_id)
 {
 	struct mmc_host *host = dev_id;
 	struct mmc_cd_gpio *cd = host->hotplug.handler_priv;
 	int status;
 
+#ifdef CONFIG_HUAWEI_MMC
+	unsigned long duration;
+#endif
 	status = mmc_cd_get_status(host);
 	if (unlikely(status < 0))
 		goto out;
@@ -54,8 +60,26 @@ static irqreturn_t mmc_cd_gpio_irqt(int irq, void *dev_id)
 				"HIGH" : "LOW");
 		cd->status = status;
 
+#ifdef CONFIG_HUAWEI_MMC
+		duration = jiffies - msmsdcc_irqtime;
+		/* current msmsdcc is present, add to handle dithering */
+		if (status) {
+			/* the distance of two interrupts can not less than 7 second */
+			if (duration < (7 * HZ))
+				duration = (7 * HZ) - duration;
+			else
+				/* 100 millisecond */
+				duration = msecs_to_jiffies(100);
+		}
+		else
+			duration = msecs_to_jiffies(2000);
+
+		mmc_detect_change(host, duration);
+		msmsdcc_irqtime = jiffies;
+#else
 		/* Schedule a card detection after a debounce timeout */
 		mmc_detect_change(host, msecs_to_jiffies(100));
+#endif
 	}
 out:
 	return IRQ_HANDLED;
