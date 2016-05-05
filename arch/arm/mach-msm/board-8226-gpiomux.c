@@ -148,6 +148,19 @@ static struct gpiomux_setting gpio_keys_suspend = {
 	.pull = GPIOMUX_PULL_NONE,
 };
 
+#ifdef CONFIG_HUAWEI_HALL_AK8789
+static struct gpiomux_setting gpio_hall_active = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+};
+static struct gpiomux_setting gpio_hall_suspend = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+};
+#endif
+
 static struct gpiomux_setting gpio_spi_act_config = {
 	.func = GPIOMUX_FUNC_1,
 	.drv = GPIOMUX_DRV_8MA,
@@ -209,6 +222,38 @@ static struct msm_gpiomux_config msm_keypad_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &gpio_keys_suspend,
 		},
 	},
+/*mate2 need to support hall devices, so we use gpio 107 108 109 119 for hall interrupts*/
+/*warning: please do not delete the following config, because delete will cause the hall breakdown*/
+#ifdef CONFIG_HUAWEI_HALL_AK8789
+	{
+		.gpio = 107,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &gpio_hall_active,
+			[GPIOMUX_SUSPENDED] = &gpio_hall_suspend,
+		},
+	},
+	{
+		.gpio = 108,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &gpio_hall_active,
+			[GPIOMUX_SUSPENDED] = &gpio_hall_suspend,
+		},
+	},
+	{
+		.gpio = 109,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &gpio_hall_active,
+			[GPIOMUX_SUSPENDED] = &gpio_hall_suspend,
+		},
+	},
+	{
+		.gpio = 119,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &gpio_hall_active,
+			[GPIOMUX_SUSPENDED] = &gpio_hall_suspend,
+		},
+	},
+#else
 	{
 		.gpio = 107,
 		.settings = {
@@ -223,6 +268,7 @@ static struct msm_gpiomux_config msm_keypad_configs[] __initdata = {
 			[GPIOMUX_SUSPENDED] = &gpio_keys_suspend,
 		},
 	},
+#endif
 };
 
 static struct gpiomux_setting lcd_rst_act_cfg = {
