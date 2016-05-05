@@ -1481,7 +1481,22 @@ int dsi_panel_device_register(struct device_node *pan_node,
 	if (!gpio_is_valid(ctrl_pdata->disp_en_gpio))
 		pr_err("%s:%d, Disp_en gpio not specified\n",
 						__func__, __LINE__);
+#ifdef CONFIG_HUAWEI_LCD
+	ctrl_pdata->bl_en_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,
+						     "qcom,bl-enable-gpio", 0);
 
+	if (!gpio_is_valid(ctrl_pdata->bl_en_gpio)) {
+		pr_err("%s:%d, backlight_en gpio not specified\n",
+						__func__, __LINE__);
+	}
+
+	ctrl_pdata->disp_en_gpio_vsn = of_get_named_gpio(ctrl_pdev->dev.of_node,
+		"qcom,platform-enable-gpio-vsn", 0);
+
+	if (!gpio_is_valid(ctrl_pdata->disp_en_gpio_vsn)) {
+		pr_err("%s: disp_en_gpio_vsn not configured\n", __func__);
+	}
+#endif
 	if (pinfo->type == MIPI_CMD_PANEL) {
 		ctrl_pdata->disp_te_gpio = of_get_named_gpio(ctrl_pdev->dev.of_node,
 						"qcom,platform-te-gpio", 0);

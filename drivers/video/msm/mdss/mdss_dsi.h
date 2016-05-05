@@ -271,6 +271,10 @@ struct mdss_dsi_ctrl_pdata {
 	int irq_cnt;
 	int rst_gpio;
 	int disp_en_gpio;
+#ifdef CONFIG_HUAWEI_LCD
+	int disp_en_gpio_vsn;
+	int bl_en_gpio;
+#endif
 	int disp_te_gpio;
 	int mode_gpio;
 	int disp_te_gpio_requested;
