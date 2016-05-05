@@ -3433,6 +3433,22 @@ static struct clk_lookup msm_clocks_8226[] = {
 	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "18.qcom,eeprom"),
 	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "6b.qcom,eeprom"),
 	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "6b.qcom,eeprom"),
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "30.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "30.qcom,camera"),
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "40.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "40.qcom,camera"),
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "24.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "24.qcom,camera"),
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "6b.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "6b.qcom,camera"),
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "7a.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "7a.qcom,camera"),
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "6e.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "6e.qcom,camera"),
+	CLK_LOOKUP("cam_src_clk", mclk0_clk_src.c, "7e.qcom,camera"),
+	CLK_LOOKUP("cam_clk", camss_mclk0_clk.c, "7e.qcom,camera"),
+#endif
 
 	/* CCI clocks */
 	CLK_LOOKUP("camss_top_ahb_clk", camss_top_ahb_clk.c,

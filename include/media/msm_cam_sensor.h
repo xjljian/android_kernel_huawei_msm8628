@@ -34,6 +34,9 @@
 #define CSI_DECODE_DPCM_10_8_10 5
 
 #define MAX_SENSOR_NAME 32
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+#define MAX_PRODUCT_NAME 32
+#endif
 
 #define MAX_ACT_MOD_NAME_SIZE 32
 #define MAX_ACT_NAME_SIZE 32
@@ -54,6 +57,7 @@
 
 #define MAX_AF_ITERATIONS 3
 #define MAX_NUMBER_OF_STEPS 47
+
 #define MAX_POWER_CONFIG 12
 
 typedef enum sensor_stats_type {
@@ -108,6 +112,9 @@ enum msm_sensor_power_seq_gpio_t {
 	SENSOR_GPIO_VAF,
 	SENSOR_GPIO_FL_EN,
 	SENSOR_GPIO_FL_NOW,
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	SENSOR_GPIO_CAM_ID, /* u-ra: unused, ABI compat, don't remove */
+#endif
 	SENSOR_GPIO_MAX,
 };
 
@@ -263,6 +270,9 @@ struct msm_camera_i2c_reg_array {
 	uint16_t reg_addr;
 	uint16_t reg_data;
 	uint32_t delay;
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	enum msm_camera_i2c_data_type data_type;
+#endif
 };
 
 struct msm_camera_i2c_reg_setting {
@@ -348,6 +358,26 @@ enum camb_position_t {
 	INVALID_CAMERA_B,
 };
 
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+enum camb_auto_exposure_mode_type{
+    CAMB_AEC_MODE_FRAME_AVERAGE,
+    CAMB_AEC_MODE_CENTER_WEIGHTED,
+    CAMB_AEC_MODE_SPOT_METERING,
+    CAMB_AEC_MODE_SMART_METERING,
+    CAMB_AEC_MODE_USER_METERING,
+    CAMB_AEC_MODE_SPOT_METERING_ADV,
+    CAMB_AEC_MODE_CENTER_WEIGHTED_ADV,
+    CAMB_AEC_MODE_MAX
+};
+
+struct msm_sensor_dig_gain {
+    uint16_t gr_gain;
+    uint16_t r_gain;
+    uint16_t b_gain;
+    uint16_t gb_gain;
+};
+#endif
+
 struct msm_sensor_info_t {
 	char     sensor_name[MAX_SENSOR_NAME];
 	int32_t  session_id;
@@ -356,6 +386,13 @@ struct msm_sensor_info_t {
 	uint32_t sensor_mount_angle;
 	int modes_supported;
 	enum camb_position_t position;
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	enum camb_auto_exposure_mode_type ae_meter_type; /* u-ra: unused, ABI compat, don't remove */
+	/*add project name for the project menu*/
+	char sensor_project_name[MAX_SENSOR_NAME];
+	struct msm_sensor_dig_gain sensor_otp_dig_gain;
+	char product_name[MAX_PRODUCT_NAME];
+#endif
 };
 
 struct camera_vreg_t {
@@ -485,7 +522,13 @@ enum msm_sensor_cfg_type_t {
 	CFG_SET_EFFECT,
 	CFG_SET_WHITE_BALANCE,
 	CFG_SET_AUTOFOCUS,
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
 	CFG_CANCEL_AUTOFOCUS,
+	CFG_GET_SENSOR_PROJECT_INFO,
+	/*CFG_WRITE_OTP_DATA will be used in vendor,so not add huawei kernel macro*/
+	CFG_WRITE_OTP_DATA,
+	CFG_WRITE_EXPOSURE_DATA
+#endif
 };
 
 enum msm_actuator_cfg_type_t {
@@ -597,6 +640,11 @@ enum af_camera_name {
 	ACTUATOR_MAIN_CAM_3,
 	ACTUATOR_MAIN_CAM_4,
 	ACTUATOR_MAIN_CAM_5,
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	ACTUATOR_MAIN_CAM_6,
+	ACTUATOR_MAIN_CAM_7,
+	ACTUATOR_MAIN_CAM_8,
+#endif
 	ACTUATOR_WEB_CAM_0,
 	ACTUATOR_WEB_CAM_1,
 	ACTUATOR_WEB_CAM_2,
@@ -641,6 +689,14 @@ enum msm_camera_led_config_t {
 	MSM_CAMERA_LED_INIT,
 	MSM_CAMERA_LED_RELEASE,
 };
+
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+typedef enum {
+  DUAL_LED_MODE_NONE = 0,
+  DUAL_LED_MODE_TORCH,
+  DUAL_LED_MODE_FLASH,
+} dual_flash_led_mode;
+#endif
 
 struct msm_camera_led_cfg_t {
 	enum msm_camera_led_config_t cfgtype;

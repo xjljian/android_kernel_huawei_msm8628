@@ -88,6 +88,9 @@ struct msm_camera_sensor_board_info {
 	const char *misc_regulator;
 	struct msm_camera_power_ctrl_t power_info;
 	struct msm_camera_sensor_slave_info *cam_slave_info;
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	const char * product_name;
+#endif
 };
 
 enum msm_camera_i2c_cmd_type {
@@ -128,6 +131,7 @@ struct msm_eeprom_memory_map_t {
 	struct eeprom_map_t pageen;
 	struct eeprom_map_t poll;
 	struct eeprom_map_t mem;
+
 	struct eeprom_slave_add_t saddr;
 };
 

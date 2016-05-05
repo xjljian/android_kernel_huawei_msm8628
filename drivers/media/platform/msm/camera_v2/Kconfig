@@ -222,3 +222,33 @@ config MSM_GEMINI
 	depends on MSMB_CAMERA && (ARCH_MSM7X30 || ARCH_MSM8X60 || ARCH_MSM8960)
 	---help---
 	  Enables support for the Gemini JPEG encoder engine for 8x60.
+
+config HW_IMX135
+	bool "HUAWEI IMX135(SONY BSI 13M SENSOR)"
+	depends on  HUAWEI_KERNEL_CAMERA
+	---help---
+	  Sony 13 MP Bayer BSI Sensor.
+
+config HW_S5K4E1
+	bool "Huawei S5K4E1 5M"
+	depends on HUAWEI_KERNEL_CAMERA
+	---help---
+		Samsung 5 MP Bayer Sensor, supports 2 mipi lanes,
+		preview config = 1304*980 30 fps,
+		snapshot config = 2608 * 1960 at 15 fps.
+		This sensor driver does not support auto focus.
+
+config HW_OV5648
+	bool "Huawei OV5648 5M"
+	depends on HUAWEI_KERNEL_CAMERA
+	---help---
+		OmniVision 5 MP Bayer Sensor, only use 1 mipi lane,
+		preview set to 1296*972 at 30 fps,
+		snapshot set to 2592*1944 at 15 fps,
+		This sensor driver does not support auto focus.
+
+config HW_LM3642
+	bool "Huawei LM3642"
+	depends on HUAWEI_KERNEL_CAMERA
+	---help---
+		LM3642 flash IC driver

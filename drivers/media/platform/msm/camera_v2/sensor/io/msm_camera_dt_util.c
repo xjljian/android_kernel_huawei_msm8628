@@ -769,6 +769,25 @@ int msm_camera_init_gpio_pin_tbl(struct device_node *of_node,
 			gconf->gpio_num_info->gpio_num[SENSOR_GPIO_RESET]);
 	}
 
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	if (of_property_read_bool(of_node, "qcom,actuator-vcm-pwd") == true) {
+		rc = of_property_read_u32(of_node, "qcom,actuator-vcm-pwd", &val);
+		if (rc < 0) {
+			pr_err("%s:%d read qcom,actuator-vcm-pwd failed rc %d\n",
+				__func__, __LINE__, rc);
+			goto ERROR;
+		} else if (val >= gpio_array_size) {
+			pr_err("%s:%d qcom,actuator-vcm-pwd invalid %d\n",
+				__func__, __LINE__, val);
+			goto ERROR;
+		}
+		gconf->gpio_num_info->gpio_num[SENSOR_GPIO_AF_PWDM] =
+			gpio_array[val];
+		gconf->gpio_num_info->valid[SENSOR_GPIO_AF_PWDM] = 1;
+		CDBG("%s qcom,gpio-reset %d\n", __func__,
+			gconf->gpio_num_info->gpio_num[SENSOR_GPIO_AF_PWDM]);
+	}
+#endif
 	if (of_property_read_bool(of_node, "qcom,gpio-standby") == true) {
 		rc = of_property_read_u32(of_node, "qcom,gpio-standby", &val);
 		if (rc < 0) {

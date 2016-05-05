@@ -1011,6 +1011,11 @@ static int msm_ispif_init(struct ispif_device *ispif,
 		goto error_ahb;
 	}
 
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	/* currently HW reset is implemented for 8974 only */
+	if (of_device_is_compatible(ispif->pdev->dev.of_node,
+				"qcom,ispif-v3.0"))
+#endif
 	msm_ispif_reset_hw(ispif);
 
 	rc = msm_ispif_reset(ispif);

@@ -983,8 +983,13 @@ static int msm_eeprom_platform_probe(struct platform_device *pdev)
 	power_info = &eb_info->power_info;
 	eb_info->i2c_slaveaddr = temp;
 
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	power_info->clk_info = cam_8960_clk_info;
+	power_info->clk_info_size = ARRAY_SIZE(cam_8960_clk_info);
+#else
 	power_info->clk_info = cam_8974_clk_info;
 	power_info->clk_info_size = ARRAY_SIZE(cam_8974_clk_info);
+#endif
 	power_info->dev = &pdev->dev;
 
 	CDBG("qcom,slave-addr = 0x%X\n", eb_info->i2c_slaveaddr);
@@ -1143,9 +1148,13 @@ static int __init msm_eeprom_init_module(void)
 	rc = platform_driver_probe(&msm_eeprom_platform_driver,
 		msm_eeprom_platform_probe);
 	CDBG("%s:%d platform rc %d\n", __func__, __LINE__, rc);
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	return rc;
+#else
 	rc = spi_register_driver(&msm_eeprom_spi_driver);
 	CDBG("%s:%d spi rc %d\n", __func__, __LINE__, rc);
 	return i2c_add_driver(&msm_eeprom_i2c_driver);
+#endif
 }
 
 static void __exit msm_eeprom_exit_module(void)

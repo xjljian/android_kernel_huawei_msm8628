@@ -101,6 +101,11 @@ struct msm_actuator_ctrl_t {
 	uint32_t subdev_id;
 	struct msm_actuator_vreg vreg_cfg;
 	enum msm_actuator_state_t actuator_state;
+
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	/*use to store pwd gpio status, if it is TRUE, it means actuator power is enable*/
+	uint32_t vcm_power_up;
+#endif
 };
 
 #endif

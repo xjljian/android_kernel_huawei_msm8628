@@ -487,6 +487,14 @@ int msm_flash_i2c_probe(struct i2c_client *client,
 		goto probe_failure;
 	}
 
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+	{
+	    pr_err("i2c_check_functionality failed I2C_FUNC_SMBUS_I2C_BLOCK\n");
+		goto probe_failure;
+	}
+#endif
+
 	fctrl = (struct msm_led_flash_ctrl_t *)(id->driver_data);
 	if (fctrl->flash_i2c_client)
 		fctrl->flash_i2c_client->client = client;
@@ -515,6 +523,9 @@ int msm_flash_i2c_probe(struct i2c_client *client,
 		return rc;
 	}
 
+#ifdef CONFIG_HUAWEI_KERNEL_CAMERA
+	fctrl->flash_i2c_client->client->addr = fctrl->flash_i2c_client->client->addr << 1;
+#endif
 	if (!fctrl->flash_i2c_client->i2c_func_tbl)
 		fctrl->flash_i2c_client->i2c_func_tbl =
 			&msm_sensor_qup_func_tbl;
