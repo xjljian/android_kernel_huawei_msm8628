@@ -3043,6 +3043,13 @@ config KRAIT_REGULATOR
 	 line from the PMIC. This supply line is powered by multiple
 	 regulators running in ganged mode inside the PMIC. Enable
 	 this option to support such configurations.
+
+config HUAWEI_KERNEL
+	bool "Use huawei code"
+	default n
+	help
+	  use huawei code
+
 endif
 
 config KERNEL_TEXT_MPU_PROT
