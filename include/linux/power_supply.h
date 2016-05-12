@@ -146,6 +146,7 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
 };
 
+/* notify bq to set output current*/
 enum power_supply_type {
 	POWER_SUPPLY_TYPE_UNKNOWN = 0,
 	POWER_SUPPLY_TYPE_BATTERY,
@@ -156,6 +157,9 @@ enum power_supply_type {
 	POWER_SUPPLY_TYPE_USB_CDP,	/* Charging Downstream Port */
 	POWER_SUPPLY_TYPE_USB_ACA,	/* Accessory Charger Adapters */
 	POWER_SUPPLY_TYPE_BMS,		/* Battery Monitor System */
+#ifdef CONFIG_CHARGER_BQ2419x
+	POWER_SUPPLY_TYPE_OTG,
+#endif
 };
 
 union power_supply_propval {

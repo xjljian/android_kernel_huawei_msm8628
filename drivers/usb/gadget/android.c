@@ -2962,6 +2962,11 @@ static struct android_configuration *alloc_android_config
 	conf->usb_config.unbind = android_unbind_config;
 	conf->usb_config.bConfigurationValue = dev->configs_num;
 
+#ifdef CONFIG_HUAWEI_USB
+	conf->usb_config.bmAttributes = USB_CONFIG_ATT_ONE | USB_CONFIG_ATT_SELFPOWER,
+	conf->usb_config.bMaxPower = 0xFA, /* 500ma */
+#endif
+
 	INIT_LIST_HEAD(&conf->enabled_functions);
 
 	list_add_tail(&conf->list_item, &dev->configs);
