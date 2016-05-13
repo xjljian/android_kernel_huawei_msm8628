@@ -78,7 +78,7 @@
 			linux,input-type = <1>;
 			linux,code = <115>;
 			gpio-key,wakeup;
-			debounce-interval = <15>;
+			debounce-interval = <20>;
 		};
 	};
 
@@ -169,6 +169,7 @@
 
 &sdhc_1 {
 	vdd-supply = <&pm8226_l17>;
+	qcom,vdd-always-on;
 	qcom,vdd-voltage-level = <2950000 2950000>;
 	qcom,vdd-current-level = <800 500000>;
 
@@ -182,7 +183,11 @@
 	qcom,pad-drv-on = <0x4 0x4 0x4>; /* 10mA, 10mA, 10mA */
 	qcom,pad-drv-off = <0x0 0x0 0x0>; /* 2mA, 2mA, 2mA */
 
-	qcom,clk-rates = <400000 25000000 50000000 100000000 200000000>;
+	/* change the emmc clk from DDR50 to SDR100 */
+	/*change the emmc max frequency from 200Mhz to 50Mhz*/
+	qcom,clk-rates = <400000 25000000 50000000 100000000>;
+
+	/*delete the feature of HS200 high speed mode because the clk depress to 50Mhz*/
 	qcom,bus-speed-mode = "HS200_1p8v", "DDR_1p8v";
 	qcom,nonremovable;
 
@@ -226,11 +231,13 @@
 
 &sdhc_2 {
 	vdd-supply = <&pm8226_l18>;
+	qcom,vdd-always-on;
 	qcom,vdd-voltage-level = <2950000 2950000>;
 	qcom,vdd-current-level = <9000 800000>;
 
 	vdd-io-supply = <&pm8226_l21>;
-	qcom,vdd-io-voltage-level = <1800000 2950000>;
+	qcom,vdd-io-always-on;
+	qcom,vdd-io-voltage-level = <2950000 2950000>;
 	qcom,vdd-io-current-level = <6 22000>;
 
 	qcom,pad-pull-on = <0x0 0x3 0x3>; /* no-pull, pull-up, pull-up */
@@ -266,6 +273,7 @@
 
 &spmi_bus {
 	qcom,pm8226@0 {
+		/*
 		qcom,leds@a100 {
 			status = "okay";
 			qcom,led_mpp_2 {
@@ -333,11 +341,12 @@
 				qcom,use-blink;
 			};
 		};
+		*/
 	};
 
 	qcom,pm8226@1 {
 		qcom,leds@d800 {
-			status = "okay";
+			status = "disable";
 			qcom,wled_0 {
 				label = "wled";
 				linux,name = "wled:backlight";
