@@ -559,6 +559,39 @@ static struct msm_gpiomux_config sd_card_det __initdata = {
 	},
 };
 
+#if defined(CONFIG_CHARGER_BQ2419x) || defined(CONFIG_BATTERY_BQ27510)
+static struct gpiomux_setting ti_bq_active_config = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_NONE,
+	.dir = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting ti_bq_suspend_config = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_NONE,
+	.dir = GPIOMUX_IN,
+};
+
+static struct msm_gpiomux_config ti_charger_and_battery_config[] = {
+	{
+		.gpio = 27,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &ti_bq_active_config,
+			[GPIOMUX_SUSPENDED] = &ti_bq_suspend_config,
+		},
+	},
+	{
+		.gpio = 67,
+		.settings = {
+			[GPIOMUX_ACTIVE]    = &ti_bq_active_config,
+			[GPIOMUX_SUSPENDED] = &ti_bq_suspend_config,
+		},
+	}
+};
+#endif
+
 static struct msm_gpiomux_config wcnss_5wire_interface[] = {
 	{
 		.gpio = 40,
@@ -804,6 +837,7 @@ static struct msm_gpiomux_config msm_auxpcm_configs[] __initdata = {
 	},
 };
 
+#ifndef CONFIG_HUAWEI_KERNEL
 static struct gpiomux_setting usb_otg_sw_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -818,6 +852,7 @@ static struct msm_gpiomux_config usb_otg_sw_configs[] __initdata = {
 		},
 	},
 };
+#endif
 
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
 static struct gpiomux_setting sdc3_clk_actv_cfg = {
@@ -935,6 +970,11 @@ void __init msm8226_init_gpiomux(void)
 				ARRAY_SIZE(wcnss_5wire_interface));
 
 	msm_gpiomux_install(&sd_card_det, 1);
+
+#if defined(CONFIG_CHARGER_BQ2419x) || defined(CONFIG_BATTERY_BQ27510)
+	msm_gpiomux_install(ti_charger_and_battery_config, ARRAY_SIZE(ti_charger_and_battery_config));
+#endif
+
 	if (of_board_is_skuf())
 		msm_gpiomux_install(msm_skuf_goodix_configs,
 				ARRAY_SIZE(msm_skuf_goodix_configs));
@@ -958,9 +998,11 @@ void __init msm8226_init_gpiomux(void)
 	msm_gpiomux_install(msm_auxpcm_configs,
 			ARRAY_SIZE(msm_auxpcm_configs));
 
+#ifndef CONFIG_HUAWEI_KERNEL
 	if (of_board_is_cdp() || of_board_is_mtp() || of_board_is_xpm())
 		msm_gpiomux_install(usb_otg_sw_configs,
 					ARRAY_SIZE(usb_otg_sw_configs));
+#endif
 
 	msm_gpiomux_sdc3_install();
 
