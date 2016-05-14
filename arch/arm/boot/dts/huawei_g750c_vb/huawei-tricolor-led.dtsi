@@ -23,18 +23,21 @@
 				qcom,led_mpp_4 {
 				label = "mpp";
 				linux,name = "green";
-				linux,default-trigger = "none";
+				linux,default-trigger = "battery-full,battery-charging";
 				qcom,default-state = "off";
 				qcom,max-current = <40>;
 				qcom,current-setting = <5>;
 				qcom,id = <6>;
 				qcom,mode = "lpg";
+				qcom,pwm-us = <1000>;
 				qcom,source-sel = <8>;
 				qcom,mode-ctrl = <0x60>;
 				qcom,pwm-channel = <0>;
 				qcom,start-idx = <1>;
+				qcom,ramp-step-ms = <240>;
 				qcom,duty-pcts = [00 00 00 00 64
 						 64 00 00 00 00];
+				qcom,use-blink;
 			};
 			};
 			qcom,leds@a500{
@@ -42,18 +45,21 @@
 				qcom,led_mpp_6 {
 				label = "mpp";
 				linux,name = "red";
-				linux,default-trigger = "none";
+				linux,default-trigger = "battery-charging";
 				qcom,default-state = "off";
 				qcom,max-current = <40>;
 				qcom,current-setting = <5>;
 				qcom,id = <6>;
+				qcom,pwm-us = <1000>;
 				qcom,mode-ctrl = <0x60>;
 				qcom,source-sel = <10>;
 				qcom,mode = "lpg";
 				qcom,pwm-channel = <5>;
 				qcom,start-idx = <1>;
+				qcom,ramp-step-ms = <240>;
 				qcom,duty-pcts = [00 00 00 00 64
 						 64 00 00 00 00];
+				qcom,use-blink;
 			};
 			};
 		};
