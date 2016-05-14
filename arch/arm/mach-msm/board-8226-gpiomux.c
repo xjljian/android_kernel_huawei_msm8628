@@ -18,6 +18,9 @@
 #include <mach/gpio.h>
 #include <mach/gpiomux.h>
 #include <mach/socinfo.h>
+#ifdef CONFIG_HUAWEI_KERNEL
+#include <linux/of.h>
+#endif
 
 #define WLAN_CLK	44
 #define WLAN_SET	43
@@ -112,6 +115,45 @@ static struct msm_gpiomux_config msm_eth_configs[] = {
 };
 #endif
 
+#ifdef CONFIG_HUAWEI_KERNEL
+/*config the nc gpio to input and pull down*/
+static struct gpiomux_setting gpio_nc_config = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_IN,
+};
+/*removed the nc gpio configrution, the configuration read from dts now*/
+#endif
+/*If no Pull-up resistor outside,This must be set as this.*/
+#ifdef CONFIG_HUAWEI_KERNEL
+static struct gpiomux_setting synaptics_int_act_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+	.dir = GPIOMUX_IN,
+};
+
+static struct gpiomux_setting synaptics_int_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_IN,
+};
+static struct gpiomux_setting synaptics_reset_act_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_UP,
+	.dir = GPIOMUX_OUT_LOW,
+};
+
+static struct gpiomux_setting synaptics_reset_sus_cfg = {
+	.func = GPIOMUX_FUNC_GPIO,
+	.drv = GPIOMUX_DRV_2MA,
+	.pull = GPIOMUX_PULL_DOWN,
+	.dir = GPIOMUX_OUT_LOW,
+};
+#else
 static struct gpiomux_setting synaptics_int_act_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_8MA,
@@ -123,7 +165,6 @@ static struct gpiomux_setting synaptics_int_sus_cfg = {
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_DOWN,
 };
-
 static struct gpiomux_setting synaptics_reset_act_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_6MA,
@@ -135,6 +176,7 @@ static struct gpiomux_setting synaptics_reset_sus_cfg = {
 	.drv = GPIOMUX_DRV_2MA,
 	.pull = GPIOMUX_PULL_DOWN,
 };
+#endif
 
 static struct gpiomux_setting gpio_keys_active = {
 	.func = GPIOMUX_FUNC_GPIO,
@@ -1029,6 +1071,60 @@ static void msm_gpiomux_sdc3_install(void)
 static void msm_gpiomux_sdc3_install(void) {}
 #endif /* CONFIG_MMC_MSM_SDC3_SUPPORT */
 
+#ifdef CONFIG_HUAWEI_KERNEL
+static struct msm_gpiomux_config* msm_nc_gpio_configs = NULL;
+/*read the nc gpio from dtsi and configure it*/
+static int msm_cfg_nc_gpio(void)
+{
+	struct device_node *of_gpio_node;
+	int ngpio = 0;
+	int rc = 0;
+	unsigned* record = NULL;
+	int i;
+
+	of_gpio_node = of_find_compatible_node(NULL, NULL, "qcom,sleep_gpio");
+	if (!of_gpio_node) {
+		pr_err("%s: Failed to find qcom,sleep_gpio node\n", __func__);
+		return -ENODEV;
+	}
+
+	rc = of_property_read_u32(of_gpio_node, "ngpio", &ngpio);
+	if (rc) {
+		pr_err("%s: Failed to find ngpio property in msm-gpio ngpio node %d\n"
+				, __func__, rc);
+		return rc;
+	}
+
+	record = kmalloc(sizeof(int) * ngpio , GFP_KERNEL);
+	if (!record)
+	{
+		return -ENOMEM;
+	}
+	memset(record,0,sizeof(int) * ngpio);
+	of_property_read_u32_array(of_gpio_node,"gpio",record,ngpio);
+
+	msm_nc_gpio_configs = kmalloc(sizeof(struct msm_gpiomux_config) * ngpio , GFP_KERNEL);
+	if (!msm_nc_gpio_configs)
+	{
+		kfree(record);
+		record = NULL;
+		return -ENOMEM;
+	}
+	memset(msm_nc_gpio_configs,0,sizeof(struct msm_gpiomux_config) * ngpio);
+	for(i=0;i<ngpio;i++)
+	{
+		msm_nc_gpio_configs[i].gpio = record[i];
+		msm_nc_gpio_configs[i].settings[GPIOMUX_ACTIVE] = &gpio_nc_config;
+		msm_nc_gpio_configs[i].settings[GPIOMUX_SUSPENDED] = &gpio_nc_config;
+	}
+	msm_gpiomux_install(msm_nc_gpio_configs,ngpio);
+
+	kfree(record);
+    record = NULL;
+	return rc;
+}
+#endif
+
 void __init msm8226_init_gpiomux(void)
 {
 	int rc;
@@ -1111,6 +1207,11 @@ void __init msm8226_init_gpiomux(void)
 	if (machine_is_msm8926() && of_board_is_mtp())
 		msm_gpiomux_install(smsc_hub_configs,
 			ARRAY_SIZE(smsc_hub_configs));
+
+#ifdef CONFIG_HUAWEI_KERNEL
+	/*use dynamic configuration gpio function instead of old one */
+	msm_cfg_nc_gpio();
+#endif
 }
 
 static void wcnss_switch_to_gpio(void)
