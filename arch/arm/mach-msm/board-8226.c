@@ -30,6 +30,7 @@
 #include <linux/regulator/onsemi-ncp6335d.h>
 #include <linux/regulator/qpnp-regulator.h>
 #include <linux/msm_tsens.h>
+#include <linux/persistent_ram.h>
 #include <asm/mach/map.h>
 #include <asm/hardware/gic.h>
 #include <asm/mach/arch.h>
@@ -58,6 +59,52 @@
 #include "pm.h"
 #include "modem_notifier.h"
 #include "spm-regulator.h"
+
+/* #define AUTORESTART 30000 */
+#ifdef AUTORESTART
+#include <linux/workqueue.h>
+
+static void auto_restart_work_handler(struct work_struct *w)
+{
+        msm_restart(0, "auto_restart");
+}
+
+static struct workqueue_struct *auto_restart_wq = 0;
+static DECLARE_DELAYED_WORK(auto_restart_work, auto_restart_work_handler);
+#endif
+
+#define HW_PERSISTENT_RAM_PHYS 0x12D00000
+#define HW_PERSISTENT_RAM_SIZE SZ_1M
+
+static struct persistent_ram_descriptor hw_persistent_ram_desc[] = {
+	{
+		.name = "ram_console",
+		.size = HW_PERSISTENT_RAM_SIZE,
+	},
+};
+
+static struct persistent_ram hw_persistent_ram = {
+	.start     = HW_PERSISTENT_RAM_PHYS,
+	.size      = HW_PERSISTENT_RAM_SIZE,
+	.num_descs = ARRAY_SIZE(hw_persistent_ram_desc),
+	.descs     = hw_persistent_ram_desc,
+};
+
+static struct resource hw_ram_console_res[] = {
+	{
+		.start = HW_PERSISTENT_RAM_PHYS,
+		.end   = HW_PERSISTENT_RAM_PHYS
+			+ HW_PERSISTENT_RAM_SIZE - 1,
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+static struct platform_device hw_ram_console = {
+	.name = "ram_console",
+	.id = -1,
+	.num_resources = ARRAY_SIZE(hw_ram_console_res),
+	.resource = hw_ram_console_res,
+};
 
 static struct memtype_reserve msm8226_reserve_table[] __initdata = {
 	[MEMTYPE_SMI] = {
@@ -148,6 +195,11 @@ void __init msm8226_add_drivers(void)
 	msm_thermal_device_init();
 }
 
+static void __init msm8226_early_ram_console(void)
+{
+	persistent_ram_early_init(&hw_persistent_ram);
+}
+
 void __init msm8226_init(void)
 {
 	struct of_dev_auxdata *adata = msm8226_auxdata_lookup;
@@ -158,6 +210,13 @@ void __init msm8226_init(void)
 	msm8226_init_gpiomux();
 	board_dt_populate(adata);
 	msm8226_add_drivers();
+
+	platform_device_register(&hw_ram_console);
+
+#ifdef AUTORESTART
+	auto_restart_wq = create_singlethread_workqueue("auto_restart_wq");
+	queue_delayed_work(auto_restart_wq, &auto_restart_work, msecs_to_jiffies(AUTORESTART));
+#endif
 }
 
 static const char *msm8226_dt_match[] __initconst = {
@@ -176,6 +235,7 @@ DT_MACHINE_START(MSM8226_DT, "Qualcomm MSM 8x26 / MSM 8x28 (Flattened Device Tre
 	.dt_compat = msm8226_dt_match,
 	.reserve = msm8226_reserve,
 	.init_very_early = msm8226_early_memory,
+	.init_early = msm8226_early_ram_console,
 	.restart = msm_restart,
 	.smp = &arm_smp_ops,
 MACHINE_END
