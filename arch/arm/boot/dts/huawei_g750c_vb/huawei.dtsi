@@ -16,6 +16,7 @@
 /include/  "huawei-vibrator.dtsi"
 /include/  "huawei-battery.dtsi"
 /include/  "huawei-usb.dtsi"
+/include/  "cust-overlay.dtsi"
 
 / {
         boardid_info {
